@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	filecontroller "gin-goinc-api/controllers/book_controller/file_controller"
+	filecontroller "gin-goinc-api/controllers/file_controller"
 )
 
 func v1Route(app *gin.RouterGroup) {

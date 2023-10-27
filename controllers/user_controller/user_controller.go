@@ -6,6 +6,7 @@ import (
 	"gin-goinc-api/requests"
 	"gin-goinc-api/responses"
 	"strconv"
+	"time"
 
 	// "log"
 	"net/http"
@@ -58,9 +59,9 @@ func GetById(ctx *gin.Context) {
 }
 
 func Store(ctx *gin.Context) {
-	userReq := new(requests.UserRequest)
+	user_request := new(requests.UserRequest)
 
-	if errReq := ctx.ShouldBind(&userReq); errReq != nil {
+	if errReq := ctx.ShouldBind(&user_request); errReq != nil {
 		ctx.JSON(400, gin.H{
 			"message": errReq.Error(),
 		})
@@ -68,7 +69,7 @@ func Store(ctx *gin.Context) {
 	}
 
 	userEmailExist := new(models.User)
-	database.DB.Table("users").Where("email = ?", userReq.Email).First(&userEmailExist)
+	database.DB.Table("users").Where("email = ?", user_request.Email).First(&userEmailExist)
 
 	if userEmailExist.Email != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -78,11 +79,12 @@ func Store(ctx *gin.Context) {
 	}
 
 	user := new(models.User)
-	user.Name = &userReq.Name
-	user.Email = &userReq.Email
-	user.Address = &userReq.Address
-	user.BornDate = &userReq.BornDate
-	user.Password = &userReq.Password
+	user.Name = &user_request.Name
+	user.Email = &user_request.Email
+	user.BornDate = &user_request.BornDate
+	user.Password = &user_request.Password
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 
 	ErrDB := database.DB.Table("users").Create(&user).Error
 	if ErrDB != nil {
@@ -92,11 +94,11 @@ func Store(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := responses.UserResponse{
-		ID:      user.ID,
-		Name:    user.Name,
-		Email:   user.Email,
-		Address: user.Address,
+	userResponse := responses.UserResponseStore{
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		BornDate: user.BornDate,
 	}
 
 	ctx.JSON(200, gin.H{
@@ -108,10 +110,10 @@ func Store(ctx *gin.Context) {
 func UpdateById(ctx *gin.Context) {
 	id := ctx.Param("id")
 	user := new(models.User)
-	userReq := new(requests.UserRequest)
+	user_request := new(requests.UserRequest)
 	userEmailExist := new(models.User)
 
-	if errReq := ctx.ShouldBind(&userReq); errReq != nil {
+	if errReq := ctx.ShouldBind(&user_request); errReq != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": errReq.Error(),
 		})
@@ -134,7 +136,7 @@ func UpdateById(ctx *gin.Context) {
 	}
 
 	//email exist
-	errUserEmailExist := database.DB.Table("users").Where("email = ?", userReq.Email).Find(&userEmailExist).Error
+	errUserEmailExist := database.DB.Table("users").Where("email = ?", user_request.Email).Find(&userEmailExist).Error
 	if errUserEmailExist != nil {
 		ctx.JSON(500, gin.H{
 			"message": "Internal server error",
@@ -149,15 +151,14 @@ func UpdateById(ctx *gin.Context) {
 		return
 	}
 
-	user.Name = &userReq.Name
-	user.Email = &userReq.Email
-	user.Address = &userReq.Address
-	user.BornDate = &userReq.BornDate
+	user.Name = &user_request.Name
+	user.Email = &user_request.Email
+	user.BornDate = &user_request.BornDate
 
 	errUpdate := database.DB.Table("users").Where("id = ?", id).Updates(&user).Error
 	if errUpdate != nil {
 		ctx.JSON(500, gin.H{
-			"message": "can't update data",
+			"message": errUpdate.Error(), // tratar
 		})
 		return
 	}
