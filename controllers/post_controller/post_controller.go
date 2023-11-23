@@ -16,7 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllPrivatePosts(ctx *gin.Context) {
+func GerUserPosts(ctx *gin.Context) {
+
 	userID, _ := ctx.Get("user_id")
 
 	var post_response_store []responses.PostResponse
@@ -65,13 +66,13 @@ func Store(ctx *gin.Context) {
 		})
 		return
 	}
+
 	random_url := utils.GenerateRandomString(10)
 
 	post := new(models.Post)
 	post.Title = &post_request.Title
 	contentBase64 := base64.StdEncoding.EncodeToString([]byte(post_request.Content))
 	post.Content = &contentBase64
-	post.Author = &post_request.Author
 	post.IsPublic = &post_request.IsPublic
 	post.UserId = &userID
 	post.UrlID = &random_url
@@ -88,7 +89,6 @@ func Store(ctx *gin.Context) {
 		ID:       post.ID,
 		Title:    post.Title,
 		Content:  post.Content,
-		Author:   post.Author,
 		IsPublic: post.IsPublic,
 		UrlID:    post.UrlID,
 	}
@@ -109,7 +109,6 @@ func StorePublic(ctx *gin.Context) {
 		return
 	}
 
-	staticAuthor := "anonymous"
 	staticIsPublic := int8(1)
 	random_url := utils.GenerateRandomString(10)
 
@@ -117,7 +116,6 @@ func StorePublic(ctx *gin.Context) {
 	post.Title = &post_request.Title
 	contentBase64 := base64.StdEncoding.EncodeToString([]byte(post_request.Content))
 	post.Content = &contentBase64
-	post.Author = &staticAuthor
 	post.IsPublic = &staticIsPublic
 	post.UrlID = &random_url
 
@@ -133,7 +131,6 @@ func StorePublic(ctx *gin.Context) {
 		ID:       post.ID,
 		Title:    post.Title,
 		Content:  post.Content,
-		Author:   post.Author,
 		UrlID:    post.UrlID,
 		IsPublic: post.IsPublic,
 	}

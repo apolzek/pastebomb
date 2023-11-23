@@ -5,7 +5,7 @@ import (
 )
 
 func AdminMiddleware(ctx *gin.Context) {
-	adminHeader := ctx.GetHeader("l33t")
+	adminHeader := ctx.GetHeader("owner")
 
 	if adminHeader != "apolzek" {
 		ctx.AbortWithStatusJSON(401, gin.H{

@@ -1,5 +1,25 @@
 version: '3.3'
 services:
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_PORT: ":8000"
+      DB_DRIVER: "mysql"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_NAME: "go_gin_gonic"
+      DB_USER: "user"
+      DB_PASSOWRD: "1234"
+      STATIC_ROUTE: "/public"
+      STATIC_DIR: "./public"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     image: mysql:5.7
     restart: always
@@ -14,5 +34,22 @@ services:
       - '3306'
     volumes:
       - mysql_db_volume:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "db", "-u", "user", "-p1234", "--silent"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      
+  migrate:
+    image: migrate/migrate
+    volumes:
+        - ./database/migrations:/migrations
+    command: ["-path", "/migrations", "-database",  "mysql://user:1234@tcp(db:3306)/go_gin_gonic?charset=utf8mb4&parseTime=True&loc=Local", "up"]
+    links: 
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   mysql_db_volume:

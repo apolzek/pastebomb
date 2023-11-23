@@ -19,26 +19,28 @@ func InitRoute(app *gin.Engine) {
 	route.POST("/login", auth_controller.Login)
 
 	//route user
-	userRoute := route.Group("user")
-	userRoute.GET("/", user_controller.GetAllUser)
-	userRoute.GET("/paginate", user_controller.GetUserPaginate)
+	userRoute := route.Group("u")
+	userRoute.GET("/", middleware.AdminMiddleware, user_controller.GetAllUser)
+	userRoute.GET("/paginate", middleware.AdminMiddleware, user_controller.GetUserPaginate)
+	userRoute.GET("/:id", middleware.AuthMiddlelware, user_controller.GetById)
+	userRoute.PATCH("/:id", middleware.AuthMiddlelware, user_controller.UpdateById)
+	userRoute.DELETE("/:id", middleware.AuthMiddlelware, user_controller.DeleteById)
 	userRoute.POST("/", user_controller.Store)
-	userRoute.GET("/:id", user_controller.GetById)
-	userRoute.PATCH("/:id", user_controller.UpdateById)
-	userRoute.DELETE("/:id", user_controller.DeleteById)
+
+	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.GerUserPosts)
+	userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.Store)
+	userRoute.GET("/anonymous/posts", post_controller.GetAllPublicPosts)
+	userRoute.POST("/anonymous/post", post_controller.StorePublic)
+	userRoute.GET("/anonymous/:id", post_controller.GetPublicPostById)
 
 	//route default
 	route.GET("/health", default_controller.GetAllBook)
 
-	postRoute := route.Group("post")
-	postRoute.GET("/", middleware.AuthMiddlelware, post_controller.GetAllPrivatePosts)
-	postRoute.GET("/public", post_controller.GetAllPublicPosts)
+	// postRoute := route.Group("post")
 
-	postRoute.POST("/", middleware.AuthMiddlelware, post_controller.Store)
-	postRoute.POST("/public", post_controller.StorePublic)
+	// postRoute.POST("/", middleware.AuthMiddlelware, post_controller.Store)
 
-	postRoute.GET("/:id", middleware.AuthMiddlelware, post_controller.GetById)
-	postRoute.GET("/public/:id", post_controller.GetPublicPostById)
+	// postRoute.GET("/:id", middleware.AuthMiddlelware, post_controller.GetById)
 
 	v1Route(route)
 

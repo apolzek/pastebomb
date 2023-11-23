@@ -2,6 +2,7 @@ package user_controller
 
 import (
 	"gin-goinc-api/database"
+	"gin-goinc-api/middleware"
 	"gin-goinc-api/models"
 	"gin-goinc-api/requests"
 	"gin-goinc-api/responses"
@@ -69,9 +70,9 @@ func Store(ctx *gin.Context) {
 		return
 	}
 
+	// check email already exists
 	userEmailExist := new(models.User)
 	database.DB.Table("users").Where("email = ?", user_request.Email).First(&userEmailExist)
-
 	if userEmailExist.Email != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "Email already used",
@@ -79,8 +80,19 @@ func Store(ctx *gin.Context) {
 		return
 	}
 
+	// check username already exists
+	userUsernameExist := new(models.User)
+	database.DB.Table("users").Where("username = ?", user_request.Username).First(&userUsernameExist)
+	if userUsernameExist.Email != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Username already used",
+		})
+		return
+	}
+
 	user := new(models.User)
 	user.Name = &user_request.Name
+	user.Username = &user_request.Username
 	user.Email = &user_request.Email
 	user.BornDate = &user_request.BornDate
 	user.Password = &user_request.Password
@@ -98,6 +110,7 @@ func Store(ctx *gin.Context) {
 	userResponse := responses.UserResponseStore{
 		ID:       user.ID,
 		Name:     user.Name,
+		Username: user.Username,
 		Email:    user.Email,
 		BornDate: user.BornDate,
 	}
@@ -109,7 +122,25 @@ func Store(ctx *gin.Context) {
 }
 
 func UpdateById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		// Se houver um erro na conversão, retorna um status HTTP 400 (Bad Request)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID inválido",
+		})
+		return
+	}
+	tokenID := middleware.ExtractUserIDFromContext(ctx)
+
+	if int8(id) != tokenID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		ctx.Abort() // Interrompe o processamento adicional do middleware ou da rota
+		return
+	}
+
 	user := new(models.User)
 	user_request := new(requests.UserRequest)
 	userEmailExist := new(models.User)
@@ -153,6 +184,7 @@ func UpdateById(ctx *gin.Context) {
 	}
 
 	user.Name = &user_request.Name
+	user.Username = &user_request.Username
 	user.Email = &user_request.Email
 	user.BornDate = &user_request.BornDate
 
@@ -171,7 +203,25 @@ func UpdateById(ctx *gin.Context) {
 }
 
 func DeleteById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		// Se houver um erro na conversão, retorna um status HTTP 400 (Bad Request)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "ID inválido",
+		})
+		return
+	}
+	tokenID := middleware.ExtractUserIDFromContext(ctx)
+
+	if int8(id) != tokenID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		ctx.Abort() // Interrompe o processamento adicional do middleware ou da rota
+		return
+	}
+
 	user := new(models.User)
 
 	errFind := database.DB.Table("users").Where("id = ?", id).Find(&user).Error
