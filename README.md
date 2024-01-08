@@ -11,10 +11,7 @@
 
 1. Up database with docker or podman
 ```sh
-docker compose up
-# or
-podman-compose up
-
+docker-compose --profile all up    
 ```
 2. Run migrations
 ```sh

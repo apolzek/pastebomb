@@ -1,24 +1,27 @@
 version: '3.3'
 services:
 
-  # app:
-  #   build: .
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     APP_PORT: ":8000"
-  #     DB_DRIVER: "mysql"
-  #     DB_HOST: "db"
-  #     DB_PORT: "3306"
-  #     DB_NAME: "go_gin_gonic"
-  #     DB_USER: "user"
-  #     DB_PASSOWRD: "1234"
-  #     STATIC_ROUTE: "/public"
-  #     STATIC_DIR: "./public"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   restart: unless-stopped
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_PORT: ":8000"
+      DB_DRIVER: "mysql"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_NAME: "go_gin_gonic"
+      DB_USER: "user"
+      DB_PASSOWRD: "1234"
+      STATIC_ROUTE: "/public"
+      STATIC_DIR: "./public"
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - all
+      - app
+    restart: unless-stopped
 
   db:
     image: mysql:5.7
@@ -39,6 +42,9 @@ services:
       timeout: 20s
       retries: 10
       interval: 10s
+    profiles:
+      - all
+      - depends
       
   migrate:
     image: migrate/migrate
@@ -50,6 +56,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    profiles:
+      - all
+      - depends
 
 volumes:
   mysql_db_volume:

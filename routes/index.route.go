@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"gin-goinc-api/configs/app_config"
 	"gin-goinc-api/controllers/auth_controller"
 	"gin-goinc-api/controllers/default_controller"
 	"gin-goinc-api/controllers/post_controller"
@@ -13,7 +12,7 @@ import (
 
 func InitRoute(app *gin.Engine) {
 	route := app.Group("")
-	route.Static(app_config.STATIC_ROUTE, app_config.STATIC_DIR)
+	// route.Static(app_config.STATIC_ROUTE, app_config.STATIC_DIR)
 
 	//auth route
 	route.POST("/login", auth_controller.Login)
@@ -26,8 +25,7 @@ func InitRoute(app *gin.Engine) {
 	userRoute.PATCH("/:id", middleware.AuthMiddlelware, user_controller.UpdateById)
 	userRoute.DELETE("/:id", middleware.AuthMiddlelware, user_controller.DeleteById)
 	userRoute.POST("/", user_controller.Store)
-
-	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.GerUserPosts)
+	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.GetUserPosts)
 	userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.Store)
 	userRoute.GET("/anonymous/posts", post_controller.GetAllPublicPosts)
 	userRoute.POST("/anonymous/post", post_controller.StorePublic)

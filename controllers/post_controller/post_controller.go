@@ -16,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GerUserPosts(ctx *gin.Context) {
+func GetUserPosts(ctx *gin.Context) {
 
 	userID, _ := ctx.Get("user_id")
 
