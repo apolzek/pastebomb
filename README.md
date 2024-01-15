@@ -9,10 +9,12 @@
 
 #### Steps
 
-1. Up database with docker or podman
+1. Up database with docker
 ```sh
-docker-compose --profile all up    
+docker compose --profile depends up
+docker compose --profile all up    
 ```
+
 2. Run migrations
 ```sh
 migrate -path database/migrations/ -database "mysql://user:1234@tcp(0.0.0.0:3306)/go_gin_gonic?charset=utf8mb4&parseTime=True&loc=Local" up

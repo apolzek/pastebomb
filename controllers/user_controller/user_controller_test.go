@@ -21,7 +21,7 @@ func TestGetAllUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/user", GetAllUser)
+	r.GET("/user", GetAllActiveUsers)
 
 	w := httptest.NewRecorder()
 

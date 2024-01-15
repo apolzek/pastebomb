@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"gin-goinc-api/utils"
+	"reflect"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -42,8 +43,23 @@ func AuthMiddlelware(ctx *gin.Context) {
 		return
 	}
 
+	var userID int
+	switch v := claimsData["id"].(type) {
+	case float64:
+		userID = int(v)
+	case int:
+		userID = v
+	default:
+		ctx.JSON(500, gin.H{
+			"message": "Tipo de ID não suportado",
+		})
+		return
+	}
+	fmt.Println("conveeeeeeerteu", reflect.TypeOf(userID))
+
 	ctx.Set("claimsData", claimsData)
 	ctx.Set("user_id", claimsData["id"])
+
 	ctx.Set("user_name", claimsData["name"])
 	ctx.Set("user_email", claimsData["email"])
 

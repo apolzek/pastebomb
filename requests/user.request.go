@@ -6,4 +6,5 @@ type UserRequest struct {
 	Email    string `json:"email" form:"email" binding:"required"`
 	BornDate string `json:"born_date" form:"born_date" binding:"required"`
 	Password string `json:"password" form:"password"`
+	IsActive int    `json:"is_active" form:"is_active"`
 }

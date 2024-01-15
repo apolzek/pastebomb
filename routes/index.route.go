@@ -19,31 +19,29 @@ func InitRoute(app *gin.Engine) {
 
 	//route user
 	userRoute := route.Group("u")
-	userRoute.GET("/", middleware.AdminMiddleware, user_controller.GetAllUser)
-	userRoute.GET("/paginate", middleware.AdminMiddleware, user_controller.GetUserPaginate)
-	userRoute.GET("/:id", middleware.AuthMiddlelware, user_controller.GetById)
-	userRoute.PATCH("/:id", middleware.AuthMiddlelware, user_controller.UpdateById)
-	userRoute.DELETE("/:id", middleware.AuthMiddlelware, user_controller.DeleteById)
-	userRoute.POST("/", user_controller.Store)
-	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.GetUserPosts)
-	userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.Store)
+
+	// Public
+	userRoute.POST("/", user_controller.CreateNewUser)
 	userRoute.GET("/anonymous/posts", post_controller.GetAllPublicPosts)
-	userRoute.POST("/anonymous/post", post_controller.StorePublic)
+	userRoute.POST("/anonymous/post", post_controller.StorePublicPost)
 	userRoute.GET("/anonymous/:id", post_controller.GetPublicPostById)
+	userRoute.GET("/:username", user_controller.GetUserById)
+
+	// Private
+	userRoute.GET("/me", middleware.AuthMiddlelware, user_controller.GetUserData)
+	// userRoute.PATCH("/me", middleware.AuthMiddlelware, user_controller.UpdateUserById)
+	userRoute.PATCH("/me", middleware.AuthMiddlelware, user_controller.UpdateUserData)
+	userRoute.DELETE("/:id", middleware.AuthMiddlelware, user_controller.DeleteUserById)
+	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.GetUserPosts)
+	userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.StoreUserPost)
+
+	// Administrative
+	userRoute.GET("/", middleware.AdminMiddleware, user_controller.GetAllActiveUsers)
+	userRoute.GET("/paginate", middleware.AdminMiddleware, user_controller.GetAllActiveUsersPaginate)
+	userRoute.GET("/all", middleware.AdminMiddleware, user_controller.GetAllUsers)
 
 	//route default
 	route.GET("/health", default_controller.GetAllBook)
 
-	// postRoute := route.Group("post")
-
-	// postRoute.POST("/", middleware.AuthMiddlelware, post_controller.Store)
-
-	// postRoute.GET("/:id", middleware.AuthMiddlelware, post_controller.GetById)
-
 	v1Route(route)
-
-	// Middlewares
-	// middleware.AuthMiddlelware
-	// middleware.AdminMiddleware
-
 }

@@ -54,7 +54,7 @@ func GetAllPublicPosts(ctx *gin.Context) {
 	})
 }
 
-func Store(ctx *gin.Context) {
+func StoreUserPost(ctx *gin.Context) {
 	post_request := new(requests.PostRequest)
 
 	userID := middleware.ExtractUserIDFromContext(ctx)
@@ -67,15 +67,29 @@ func Store(ctx *gin.Context) {
 		return
 	}
 
+	var user models.User
+	userDeleted := database.DB.Table("users").Where("id = ? AND is_active = ?", uint(userID), 1).First(&user).Error
+	if userDeleted != nil || userID == 0 {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		ctx.Abort() // Interrompe o processamento adicional do middleware ou da rota
+		return
+	}
+
 	random_url := utils.GenerateRandomString(10)
 
 	post := new(models.Post)
 	post.Title = &post_request.Title
 	contentBase64 := base64.StdEncoding.EncodeToString([]byte(post_request.Content))
 	post.Content = &contentBase64
-	post.IsPublic = &post_request.IsPublic
-	post.UserId = &userID
+	post.Category = &post_request.Category
+	post.UserID = &userID
 	post.UrlID = &random_url
+	// post.Author = "temporary"
+	post.IsPublic = &post_request.IsPublic
+	post.ExpirationDate = &post_request.ExpirationDate
+	post.SecretAccess = &post_request.SecretAccess
 
 	ErrDB := database.DB.Table("posts").Create(&post).Error
 	if ErrDB != nil {
@@ -99,7 +113,7 @@ func Store(ctx *gin.Context) {
 	})
 }
 
-func StorePublic(ctx *gin.Context) {
+func StorePublicPost(ctx *gin.Context) {
 	post_request := new(requests.PostRequest)
 
 	if errReq := ctx.ShouldBind(&post_request); errReq != nil {
