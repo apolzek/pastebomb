@@ -32,3 +32,8 @@ air
 ```sh
 go test -count=1 ./... -v
 ```
+
+Audit
+```
+security.LogAuditEvent("Mohamed_Gamal", "password_change", "User Settings", "Changed password for security reasons")
+```

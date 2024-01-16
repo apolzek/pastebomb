@@ -1,0 +1,14 @@
+// CreateNewUser
+POST /u HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+Content-Length: 138
+
+{
+    "name": "mary",
+    "email": "mary@gmail.com",
+    "username": "mary",
+    "born_date": "2022-09-04",
+    "password": "pass@1234"
+}
+

@@ -2,8 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"gin-goinc-api/utils"
-	"reflect"
+	utils "gin-goinc-api/security"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -55,11 +54,10 @@ func AuthMiddlelware(ctx *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("conveeeeeeerteu", reflect.TypeOf(userID))
 
 	ctx.Set("claimsData", claimsData)
 	ctx.Set("user_id", claimsData["id"])
-
+	ctx.Set("user_int", userID)
 	ctx.Set("user_name", claimsData["name"])
 	ctx.Set("user_email", claimsData["email"])
 

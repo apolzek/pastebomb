@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"gin-goinc-api/configs/db_config"
+	"gin-goinc-api/config/db_config"
 	"log"
 	"time"
 
