@@ -1,0 +1,16 @@
+@apiurl = localhost:8000
+
+### GetAllUsers
+GET /u/all HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek
+
+### GetAllActiveUsers
+GET /u HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek
+
+### GetAllActiveUsersPaginate
+GET /u/paginate?page=1&perPage=12 HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek

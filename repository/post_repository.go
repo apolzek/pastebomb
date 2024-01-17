@@ -36,3 +36,20 @@ func (repo *PostRepository) ListUserPosts(userID interface{}) ([]responses.ListP
 	}
 	return posts, err
 }
+
+func (r *PostRepository) GetUserPosts(userID uint) ([]responses.PostResponse, error) {
+	var postResponseStore []responses.PostResponse
+	if err := database.DB.Table("posts").Where("user_id = ?", userID).Find(&postResponseStore).Error; err != nil {
+		return nil, err
+	}
+	return postResponseStore, nil
+}
+
+func (r *PostRepository) GetPostByIdOrURL(id string) (*responses.PostResponse, error) {
+	var post responses.PostResponse
+	err := database.DB.Table("posts").Where("id = ? OR url_id = ?", id, id).Find(&post).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return &post, err
+}
