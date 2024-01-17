@@ -12,8 +12,6 @@ import (
 	"gin-goinc-api/utils"
 	"net/http"
 
-	// "log"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -184,33 +182,28 @@ func GetById(ctx *gin.Context) {
 		"data":    post,
 	})
 }
-
 func GetPublicPostById(ctx *gin.Context) {
+
 	id := ctx.Param("id")
-	post := new(responses.PostResponse)
+	postRepository := repository.NewPostRepository()
+	post, err := postRepository.GetPostByIdOrURL(id)
 
-	errDb := database.DB.Table("posts").
-		Where("id = ? OR url_id = ?", id, id).
-		Where("is_public = ?", 1).
-		Find(&post).
-		Error
-
-	if errDb != nil {
+	if err != nil {
 		ctx.JSON(500, gin.H{
-			"messange": "Inernal server error",
+			"message": "Internal Server Error",
 		})
 		return
 	}
 
-	if post.ID == nil {
+	if post == nil || post.ID == nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
-			"messange": "Data post not found",
+			"message": "Data post not found",
 		})
 		return
 	}
 
 	ctx.JSON(200, gin.H{
-		"message": "data transmitted",
+		"message": "Data transmitted",
 		"data":    post,
 	})
 }

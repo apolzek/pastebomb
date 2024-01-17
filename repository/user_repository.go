@@ -116,3 +116,29 @@ func (repo *UserRepository) UpdateUserData(userID int, userRequest *requests.Use
 func (repo *UserRepository) DeactivateUserByID(id int) error {
 	return database.DB.Table("users").Where("id = ?", id).Update("is_active", 0).Error
 }
+
+func (r *UserRepository) CheckEmailExists(email string) bool {
+	user := new(model.User)
+	database.DB.Table("users").Where("email = ?", email).First(user)
+	return user.Email != nil
+}
+
+func (r *UserRepository) CheckUsernameExists(username string) bool {
+	user := new(model.User)
+	database.DB.Table("users").Where("username = ?", username).First(user)
+	return user.Email != nil
+}
+
+func (r *UserRepository) CreateUser(user *model.User) error {
+	return database.DB.Table("users").Create(user).Error
+}
+
+func (r *UserRepository) CheckUserEmailExists(email string, userID int) bool {
+	user := new(model.User)
+	result := database.DB.Table("users").Where("email = ?", email).Find(user)
+	return result.Error == nil && user.Email != nil && *user.ID != userID
+}
+
+func (r *UserRepository) UpdateUser(id int, user *model.User) error {
+	return database.DB.Table("users").Where("id = ?", id).Updates(user).Error
+}

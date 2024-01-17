@@ -1,7 +1,6 @@
 package user_controller
 
 import (
-	"gin-goinc-api/database"
 	"gin-goinc-api/middleware"
 	"gin-goinc-api/model"
 	"gin-goinc-api/repository"
@@ -127,50 +126,40 @@ func GetUserData(ctx *gin.Context) {
 }
 
 func CreateNewUser(ctx *gin.Context) {
-	user_request := new(requests.UserRequest)
+	userRequest := new(requests.UserRequest)
 
-	if errReq := ctx.ShouldBind(&user_request); errReq != nil {
-		ctx.JSON(400, gin.H{
-			"message": errReq.Error(),
-		})
+	if errReq := ctx.ShouldBind(&userRequest); errReq != nil {
+		ctx.JSON(400, gin.H{"message": errReq.Error()})
 		return
 	}
 
+	userRepo := repository.NewUserRepository()
+
 	// check email already exists
-	userEmailExist := new(model.User)
-	database.DB.Table("users").Where("email = ?", user_request.Email).First(&userEmailExist)
-	if userEmailExist.Email != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Email already used",
-		})
+	if userRepo.CheckEmailExists(userRequest.Email) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email already used"})
 		return
 	}
 
 	// check username already exists
-	userUsernameExist := new(model.User)
-	database.DB.Table("users").Where("username = ?", user_request.Username).First(&userUsernameExist)
-	if userUsernameExist.Email != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Username already used",
-		})
+	if userRepo.CheckUsernameExists(userRequest.Username) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Username already used"})
 		return
 	}
 
-	user := new(model.User)
-	user.Name = &user_request.Name
-	user.Username = &user_request.Username
-	user.Email = &user_request.Email
-	user.BornDate = &user_request.BornDate
-	user.Password = &user_request.Password
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
-	user.IsActive = 1
+	user := &model.User{
+		Name:      &userRequest.Name,
+		Username:  &userRequest.Username,
+		Email:     &userRequest.Email,
+		BornDate:  &userRequest.BornDate,
+		Password:  &userRequest.Password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		IsActive:  1,
+	}
 
-	ErrDB := database.DB.Table("users").Create(&user).Error
-	if ErrDB != nil {
-		ctx.JSON(500, gin.H{
-			"message": "can't create data",
-		})
+	if err := userRepo.CreateUser(user); err != nil {
+		ctx.JSON(500, gin.H{"message": "Can't create data"})
 		return
 	}
 
@@ -182,91 +171,60 @@ func CreateNewUser(ctx *gin.Context) {
 		BornDate: user.BornDate,
 	}
 
-	ctx.JSON(200, gin.H{
-		"message": "Data created successfully",
-		"data":    userResponse,
-	})
+	ctx.JSON(200, gin.H{"message": "Data created successfully", "data": userResponse})
 }
 
 func UpdateUserById(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		// Se houver um erro na conversão, retorna um status HTTP 400 (Bad Request)
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "ID inválido",
-		})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
 		return
 	}
+
 	tokenID := middleware.ExtractUserIDFromContext(ctx)
-
 	if int8(id) != tokenID {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Unauthorized",
-		})
-		ctx.Abort() // Interrompe o processamento adicional do middleware ou da rota
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		ctx.Abort()
 		return
 	}
 
-	user := new(model.User)
-	user_request := new(requests.UserRequest)
-	userEmailExist := new(model.User)
+	userRepo := repository.NewUserRepository()
 
-	if errReq := ctx.ShouldBind(&user_request); errReq != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": errReq.Error(),
-		})
+	userRequest := new(requests.UserRequest)
+	if errReq := ctx.ShouldBind(&userRequest); errReq != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": errReq.Error()})
 		return
 	}
 
-	errDB := database.DB.Table("users").Where("id = ?", id).Find(&user).Error
-	if errDB != nil {
-		ctx.JSON(500, gin.H{
-			"message": "Internal server error",
-		})
+	existingUser, err := userRepo.GetUserByEmail(string(id))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 
-	if user.ID == nil {
-		ctx.JSON(404, gin.H{
-			"message": "Data not found",
-		})
+	if existingUser.ID == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "Data not found"})
 		return
 	}
 
-	//email exist
-	errUserEmailExist := database.DB.Table("users").Where("email = ?", user_request.Email).Find(&userEmailExist).Error
-	if errUserEmailExist != nil {
-		ctx.JSON(500, gin.H{
-			"message": "Internal server error",
-		})
+	if userRepo.CheckUserEmailExists(userRequest.Email, *existingUser.ID) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email already used"})
 		return
 	}
 
-	if userEmailExist.Email != nil && *user.ID != *userEmailExist.ID {
-		ctx.JSON(400, gin.H{
-			"message": "Email already used",
-		})
+	existingUser.Name = &userRequest.Name
+	existingUser.Username = &userRequest.Username
+	existingUser.Email = &userRequest.Email
+	existingUser.BornDate = &userRequest.BornDate
+
+	err = userRepo.UpdateUser(id, existingUser)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	user.Name = &user_request.Name
-	user.Username = &user_request.Username
-	user.Email = &user_request.Email
-	user.BornDate = &user_request.BornDate
-
-	errUpdate := database.DB.Table("users").Where("id = ?", id).Updates(&user).Error
-	if errUpdate != nil {
-		ctx.JSON(500, gin.H{
-			"message": errUpdate.Error(), // tratar
-		})
-		return
-	}
-
-	ctx.JSON(200, gin.H{
-		"message": "data updated successfully",
-		// "data":    user,
-	})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Data updated successfully"})
 }
 
 func UpdateUserData(ctx *gin.Context) {
