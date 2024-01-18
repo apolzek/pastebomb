@@ -2,54 +2,46 @@ package repository
 
 import (
 	"gin-goinc-api/database"
-	"gin-goinc-api/model"
 	"gin-goinc-api/responses"
-
-	"gorm.io/gorm"
 )
 
-type PostRepository struct{}
-
-func NewPostRepository() *PostRepository {
-	return &PostRepository{}
+type PostRepository interface {
+	GetAllPublicPosts() ([]responses.PostResponse, error)
+	// CreateNewUserPost(post *dto.PostRequest, userID int8) error
+	// CreatePublicPost(post *dto.PostRequest) error
+	// ListUserPosts(userID int8) ([]response.ListPostResponse, error)
+	// GetUserPosts(userID int8) ([]response.PostResponse, error)
+	// GetPostByIdOrURL(id string) (*response.PostResponse, error)
 }
 
-func (repo *PostRepository) GetAllPublicPosts() ([]responses.PostResponse, error) {
+type PostRepositoryImpl struct{}
+
+func NewPostRepository() *PostRepositoryImpl {
+	return &PostRepositoryImpl{}
+}
+
+func (repo *PostRepositoryImpl) GetAllPublicPosts() ([]responses.PostResponse, error) {
 	var postResponseStore []responses.PostResponse
 	err := database.DB.Table("posts").Where("is_public = ?", 1).Find(&postResponseStore).Error
 	return postResponseStore, err
 }
 
-func (repo *PostRepository) CreateNewUserPost(post *model.Post) error {
-	return database.DB.Table("posts").Create(post).Error
-}
+// func (repo *PostRepositoryImpl) CreateNewUserPost(post *dto.PostRequest, userID int8) error {
+// 	// Implemente a lógica para criar um novo post de usuário no banco de dados
+// }
 
-func (repo *PostRepository) CreatePublicPost(post *model.Post) error {
-	return database.DB.Table("posts").Create(post).Error
-}
+// func (repo *PostRepositoryImpl) CreatePublicPost(post *dto.PostRequest) error {
+// 	// Implemente a lógica para criar um novo post público no banco de dados
+// }
 
-func (repo *PostRepository) ListUserPosts(userID interface{}) ([]responses.ListPostResponse, error) {
-	var posts []responses.ListPostResponse
-	err := database.DB.Table("posts").Where("user_id = ?", userID).Select("id, title, url_id").Find(&posts).Error
-	if err == gorm.ErrRecordNotFound {
-		return nil, nil
-	}
-	return posts, err
-}
+// func (repo *PostRepositoryImpl) ListUserPosts(userID int8) ([]response.ListPostResponse, error) {
+// 	// Implemente a lógica para obter a lista de posts de um usuário no banco de dados
+// }
 
-func (r *PostRepository) GetUserPosts(userID uint) ([]responses.PostResponse, error) {
-	var postResponseStore []responses.PostResponse
-	if err := database.DB.Table("posts").Where("user_id = ?", userID).Find(&postResponseStore).Error; err != nil {
-		return nil, err
-	}
-	return postResponseStore, nil
-}
+// func (repo *PostRepositoryImpl) GetUserPosts(userID int8) ([]response.PostResponse, error) {
+// 	// Implemente a lógica para obter todos os posts de um usuário no banco de dados
+// }
 
-func (r *PostRepository) GetPostByIdOrURL(id string) (*responses.PostResponse, error) {
-	var post responses.PostResponse
-	err := database.DB.Table("posts").Where("id = ? OR url_id = ?", id, id).Find(&post).Error
-	if err == gorm.ErrRecordNotFound {
-		return nil, nil
-	}
-	return &post, err
-}
+// func (repo *PostRepositoryImpl) GetPostByIdOrURL(id string) (*response.PostResponse, error) {
+// 	// Implemente a lógica para obter um post pelo ID ou URL no banco de dados
+// }

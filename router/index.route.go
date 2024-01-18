@@ -6,6 +6,8 @@ import (
 	"gin-goinc-api/controller/post_controller"
 	"gin-goinc-api/controller/user_controller"
 	"gin-goinc-api/middleware"
+	"gin-goinc-api/repository"
+	"gin-goinc-api/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,15 +32,20 @@ func InitRoute(app *gin.Engine) {
 	userRoute.PATCH("/me", middleware.AuthMiddlelware, user_controller.UpdateUserData)
 	userRoute.DELETE("/:id", middleware.AuthMiddlelware, user_controller.DeactivateUserByID)
 	userRoute.DELETE("/me", middleware.AuthMiddlelware, user_controller.DeactivateUserByID)
-	userRoute.GET("/me/posts/content", middleware.AuthMiddlelware, post_controller.GetUserPosts)
-	userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.ListUserPosts)
-	userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.CreateNewUserPost)
+	// userRoute.GET("/me/posts/content", middleware.AuthMiddlelware, post_controller.GetUserPosts)
+	// userRoute.GET("/me/posts", middleware.AuthMiddlelware, post_controller.ListUserPosts)
+	// userRoute.POST("/me/post", middleware.AuthMiddlelware, post_controller.CreateNewUserPost)
 
 	// Public
 	userRoute.POST("/", user_controller.CreateNewUser)
-	userRoute.GET("/anonymous/posts", post_controller.GetAllPublicPosts)
-	userRoute.POST("/anonymous/post", post_controller.CreatePublicPost)
-	userRoute.GET("/anonymous/:id", post_controller.GetPublicPostById)
+
+	postRepo := repository.NewPostRepository()
+	postService := service.NewPostService(postRepo)
+	postController := post_controller.NewPostController(postService)
+	userRoute.GET("/anonymous/posts", postController.GetAllPublicPosts)
+
+	// userRoute.POST("/anonymous/post", post_controller.CreatePublicPost)
+	// userRoute.GET("/anonymous/:id", post_controller.GetPublicPostById)
 	userRoute.GET("/:IDorUsername", user_controller.GetUserByIDorUsername)
 
 	//route default

@@ -1,30 +1,19 @@
 package post_controller
 
-import (
-	"gin-goinc-api/config/db_config"
-	"gin-goinc-api/database"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+// func TestGetUserPosts(t *testing.T) {
+// 	db_config.DB_DRIVER = "test"
+// 	database.ConnectDatabase()
 
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-)
+// 	gin.SetMode(gin.TestMode)
+// 	r := gin.Default()
 
-func TestGetUserPosts(t *testing.T) {
-	db_config.DB_DRIVER = "test"
-	database.ConnectDatabase()
+// 	r.GET("/u/me/posts", GetUserPosts)
 
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+// 	w := httptest.NewRecorder()
 
-	r.GET("/u/me/posts", GetUserPosts)
+// 	req, err := http.NewRequest("GET", "/u/me/posts", nil)
+// 	r.ServeHTTP(w, req)
 
-	w := httptest.NewRecorder()
-
-	req, err := http.NewRequest("GET", "/u/me/posts", nil)
-	r.ServeHTTP(w, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, http.StatusOK, w.Code)
+// }
