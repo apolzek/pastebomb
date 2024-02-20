@@ -6,13 +6,16 @@
 - gin-gonic
 - migrate
 - jwt
+- air
+- docker
+- docker-compose
 
 #### Steps
 
 1. Up database with docker
 ```sh
-docker compose --profile depends up
-docker compose --profile all up    
+docker-compose --profile all up
+docker-compose --profile depends up    
 ```
 
 2. Run migrations
@@ -31,9 +34,4 @@ air
 4. Run tests
 ```sh
 go test -count=1 ./... -v
-```
-
-Audit
-```
-security.LogAuditEvent("Mohamed_Gamal", "password_change", "User Settings", "Changed password for security reasons")
 ```

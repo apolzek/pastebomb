@@ -9,6 +9,5 @@ func InitConfig() {
 
 	app_config.InitAppConfig()
 	db_config.InitDatabaseConfig()
-	//flagc_config.InitFlagConfig() https://github.com/thomaspoignant/go-feature-flag/blob/main/examples/retriever_file/main.go
 
 }

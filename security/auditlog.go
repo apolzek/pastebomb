@@ -6,19 +6,35 @@ import (
 	"time"
 )
 
+// LogLevel define os tipos de log válidos
+type LogLevel string
+
+const (
+	// LogLevelInfo indica um log de informação
+	LogLevelInfo LogLevel = "INFO"
+	// LogLevelDebug indica um log de depuração
+	LogLevelDebug LogLevel = "DEBUG"
+	// LogLevelError indica um log de erro
+	LogLevelError LogLevel = "ERROR"
+	// LogLevelException indica um log de exceção
+	LogLevelException LogLevel = "EXCEPTION"
+)
+
+// AuditLogEntry representa uma entrada no log de auditoria
 type AuditLogEntry struct {
+	Level   LogLevel    `json:"level"`
 	Actor   string      `json:"actor"`
 	Action  string      `json:"action"`
-	Module  string      `json:"module"`
 	When    time.Time   `json:"when"`
 	Details interface{} `json:"details"`
 }
 
-func LogAuditEvent(actor string, action string, module string, details interface{}) {
+// LogAuditEvent registra um evento no log de auditoria
+func LogAuditEvent(level LogLevel, actor string, action string, details interface{}) {
 	entry := AuditLogEntry{
+		Level:   level,
 		Actor:   actor,
 		Action:  action,
-		Module:  module,
 		When:    time.Now(),
 		Details: details,
 	}

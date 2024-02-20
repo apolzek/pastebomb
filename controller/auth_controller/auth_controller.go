@@ -4,6 +4,7 @@ import (
 	"gin-goinc-api/database"
 	"gin-goinc-api/model"
 	"gin-goinc-api/requests"
+	"gin-goinc-api/security"
 	utils "gin-goinc-api/security"
 	"log"
 	"time"
@@ -57,6 +58,8 @@ func Login(ctx *gin.Context) {
 		})
 		return
 	}
+
+	security.LogAuditEvent("INFO", *user.Name, "successfully authenticated", "token issued and returned to user")
 
 	ctx.JSON(200, gin.H{
 		"message": "login success",

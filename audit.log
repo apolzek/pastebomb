@@ -1,5 +1,1 @@
-{"actor":"Mohamed_Gamal","action":"password_change","module":"User Settings","when":"2024-01-15T17:02:18.996860464-03:00","details":"Changed password for security reasons"}
-{"actor":"Mohamed_Gamal","action":"password_change","module":"User Settings","when":"2024-01-15T17:02:47.047691892-03:00","details":"Changed password for security reasons"}
-{"actor":"Mohamed_Gamal","action":"password_change","module":"User Settings","when":"2024-01-15T17:05:35.867890214-03:00","details":"Changed password for security reasons"}
-{"actor":"Mohamed_Gamal","action":"password_change","module":"User Settings","when":"2024-01-15T17:05:37.029103274-03:00","details":"Changed password for security reasons"}
-{"actor":"Mohamed_Gamal","action":"password_change","module":"User Settings","when":"2024-01-15T17:15:10.672690077-03:00","details":"Changed password for security reasons"}
+{"level":"INFO","actor":"owen","action":"successfully authenticated","when":"2024-02-20T20:48:27.503465781-03:00","details":"token issued and returned to user"}
