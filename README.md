@@ -1,6 +1,6 @@
 # pastebomb
 
-#### This project uses:
+### This project uses:
 
 - mysql
 - gin-gonic
@@ -10,28 +10,30 @@
 - docker
 - docker-compose
 
-#### Steps
+### Run with docker compose
 
-1. Up database with docker
+Up database with docker
 ```sh
 docker-compose --profile all up
-docker-compose --profile depends up    
 ```
+### Run app localy
 
-2. Run migrations
+Up database and start app
 ```sh
-migrate -path database/migrations/ -database "mysql://user:1234@tcp(0.0.0.0:3306)/go_gin_gonic?charset=utf8mb4&parseTime=True&loc=Local" up
-```
+docker-compose --profile depends up   
 
-3. Run app localy
-```sh
 go mod tidy
 go run cmd/main.go
 # or 
 air
 ```
 
-4. Run tests
+Run migrations
+```sh
+migrate -path database/migrations/ -database "mysql://user:1234@tcp(0.0.0.0:3306)/go_gin_gonic?charset=utf8mb4&parseTime=True&loc=Local" up
+```
+
+Run tests (*optional*)
 ```sh
 go test -count=1 ./... -v
 ```
