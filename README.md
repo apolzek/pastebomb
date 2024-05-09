@@ -1,12 +1,8 @@
 # pastebomb
 
-### This project uses:
-
-#mysql #gin-gonic #migrate #jwt #air #docker #docker-compose
-
 ### Run with docker compose
 
-Up database with docker
+Up app and database
 ```sh
 docker-compose --profile all up
 ```
@@ -21,6 +17,7 @@ go run cmd/main.go
 # or 
 air
 ```
+> http://localhost:8000/health
 
 Run migrations
 ```sh

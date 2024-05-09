@@ -1,1 +1,2 @@
 {"level":"INFO","actor":"owen","action":"successfully authenticated","when":"2024-02-20T20:48:27.503465781-03:00","details":"token issued and returned to user"}
+{"level":"INFO","actor":"john","action":"successfully authenticated","when":"2024-05-09T20:01:36.230999763-03:00","details":"token issued and returned to user"}

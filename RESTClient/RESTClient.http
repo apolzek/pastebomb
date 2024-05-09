@@ -1,17 +1,44 @@
 @apiurl = localhost:8000
+### CreateNewUser
+POST /u HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+Content-Length: 138
+
+{
+    "name": "john",
+    "email": "john@gmail.com",
+    "username": "john",
+    "born_date": "2022-09-04",
+    "password": "pass@1234"
+}
 
 ### Login
+# @name login
 POST /login HTTP/1.1
 Host: {{apiurl}}
 Content-Type: application/json
 Content-Length: 64
 
 {
-    "email": "joana@gmail.com",
-    "password": "1234"
+    "email": "john@gmail.com",
+    "password": "pass@1234"
 }
+@token = {{login.response.body.token}}
 
-@apiurl = localhost:8000
+### CreateUserPost
+POST /u/me/post HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Content-Length: 114
+
+{
+    "title": "new post",
+    "content": "dmFpIHRyYWJhaWEgIQ==",
+    "category": "programming",
+    "is_public": 1
+}
 
 ####################################################################
 
@@ -33,82 +60,52 @@ owner: apolzek
 
 ####################################################################
 
-@apiurl = localhost:8000
-@access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvYW5hQGdtYWlsLmNvbSIsImV4cCI6MTcwNTYwMjA1NSwiaWQiOjMsIm5hbWUiOiJqb2FuYSJ9.yu4nF9_CBrZWAKyG3UWroA1lgi-J2WMFL0KCMprryKA
-
 ### GetUserData
 GET /u/me HTTP/1.1
 Host: {{apiurl}}
-Authorization: Bearer {{access_token}}
+Authorization: Bearer {{token}}
 
 ### UpdateUserData
 PATCH /u/me HTTP/1.1
 Host: {{apiurl}}
 Content-Type: application/json
-Authorization: Bearer {{access_token}}
-Content-Length: 109
+Authorization: Bearer {{token}}
+Content-Length: 109x
 
 {
-    "name": "sidney",
-    "email": "sidney@gmail.com",
-    "username": "sidney",
+    "name": "johnn",
+    "email": "johnn@gmail.com",
+    "username": "johnn",
     "born_date": "2022-09-04"
 }
 
 ### DeactivateUserByID
-DELETE /u/2 HTTP/1.1
+DELETE /u/1 HTTP/1.1
 Host: {{apiurl}}
-Authorization: Bearer 
-
-### CreateUserPost
-POST /u/me/post HTTP/1.1
-Host: {{apiurl}}
-Content-Type: application/json
-Authorization: Bearer {{access_token}}
-Content-Length: 114
-
-{
-    "title": "priv2",
-    "content": "dmFpIHRyYWJhaWEgIQ==",
-    "category": "programming",
-    "is_public": 1
-}
+Authorization: Bearer {{token}}
 
 ### ListUserPosts
 GET /u/me/posts HTTP/1.1
 Host: {{apiurl}}
-Authorization: Bearer {{access_token}}
+Authorization: Bearer {{token}}
 
 ### GetUserPostsContent
 GET /u/me/posts/content HTTP/1.1
 Host: {{apiurl}}
-Authorization: Bearer {{access_token}}
+Authorization: Bearer {{token}}
 
 ####################################################################
-
-### CreateNewUser
-POST /u HTTP/1.1
-Host: localhost:8000
-Content-Type: application/json
-Content-Length: 138
-
-{
-    "name": "mary",
-    "email": "mary@gmail.com",
-    "username": "mary",
-    "born_date": "2022-09-04",
-    "password": "pass@1234"
-}
 
 ### GetAllPublicPosts
 GET /u/anonymous/posts HTTP/1.1
 Host: localhost:8000
 
 ### GetUserByIDorUsername
-GET /u/mary HTTP/1.1
+GET /u/john HTTP/1.1
 Host: localhost:8000
 
 ### CreateAnonymousPost
+# @name anonymous_post
 POST /u/anonymous/post HTTP/1.1
 Host: localhost:8000
 Content-Type: application/json
@@ -119,7 +116,12 @@ Content-Length: 544
     "content": "dmFpIHRyYWJhaWEgIQ==",
     "category": "programming"
 }
+@url_id = {{anonymous_post.response.body.data.url_id}}
 
 ### GetPublicPosByIDorUrl
-GET /u/anonymous/qkFqqeqBI0 HTTP/1.1
+GET /u/anonymous/{{url_id}} HTTP/1.1
 Host: localhost:8000
+
+
+
+
