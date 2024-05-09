@@ -2,13 +2,7 @@
 
 ### This project uses:
 
-- mysql
-- gin-gonic
-- migrate
-- jwt
-- air
-- docker
-- docker-compose
+#mysql #gin-gonic #migrate #jwt #air #docker #docker-compose
 
 ### Run with docker compose
 
