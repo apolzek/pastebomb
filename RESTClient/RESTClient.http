@@ -1,0 +1,127 @@
+@apiurl = localhost:8000
+### CreateNewUser
+POST /u HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+Content-Length: 138
+
+{
+    "name": "john",
+    "email": "john@gmail.com",
+    "username": "john",
+    "born_date": "2022-09-04",
+    "password": "pass@1234"
+}
+
+### Login
+# @name login
+POST /login HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+Content-Length: 64
+
+{
+    "email": "john@gmail.com",
+    "password": "pass@1234"
+}
+@token = {{login.response.body.token}}
+
+### CreateUserPost
+POST /u/me/post HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Content-Length: 114
+
+{
+    "title": "new post",
+    "content": "dmFpIHRyYWJhaWEgIQ==",
+    "category": "programming",
+    "is_public": 1
+}
+
+####################################################################
+
+### GetAllUsers
+GET /u/all HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek
+
+### GetAllActiveUsers
+GET /u HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek
+
+### GetAllActiveUsersPaginate
+GET /u/paginate?page=1&perPage=12 HTTP/1.1
+Host: {{apiurl}}
+owner: apolzek
+
+
+####################################################################
+
+### GetUserData
+GET /u/me HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
+
+### UpdateUserData
+PATCH /u/me HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+Content-Length: 109x
+
+{
+    "name": "johnn",
+    "email": "johnn@gmail.com",
+    "username": "johnn",
+    "born_date": "2022-09-04"
+}
+
+### DeactivateUserByID
+DELETE /u/1 HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
+
+### ListUserPosts
+GET /u/me/posts HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
+
+### GetUserPostsContent
+GET /u/me/posts/content HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
+
+####################################################################
+
+### GetAllPublicPosts
+GET /u/anonymous/posts HTTP/1.1
+Host: localhost:8000
+
+### GetUserByIDorUsername
+GET /u/john HTTP/1.1
+Host: localhost:8000
+
+### CreateAnonymousPost
+# @name anonymous_post
+POST /u/anonymous/post HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+Content-Length: 544
+
+{
+    "title": "My Public Post",
+    "content": "dmFpIHRyYWJhaWEgIQ==",
+    "category": "programming"
+}
+@url_id = {{anonymous_post.response.body.data.url_id}}
+
+### GetPublicPosByIDorUrl
+GET /u/anonymous/{{url_id}} HTTP/1.1
+Host: localhost:8000
+
+
+
+
