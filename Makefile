@@ -1,4 +1,5 @@
-.PHONY: help build run test test-race cover vet fmt fmt-check lint tidy vuln check docker-up docker-down migrate migrate-down
+.PHONY: help build run test test-race cover vet fmt fmt-check lint tidy vuln check docker-up docker-down migrate migrate-down \
+	loadtest-up loadtest-down loadtest-seed loadtest-smoke loadtest-k6 loadtest-locust loadtest-vegeta
 
 GO         ?= go
 PKG        := ./...
@@ -9,7 +10,7 @@ DB_NAME    ?= pastebomb
 DB_DSN     := mysql://$(DB_USER):$(DB_PASSWORD)@tcp(127.0.0.1:3306)/$(DB_NAME)?charset=utf8mb4&parseTime=True&loc=UTC
 
 help: ## List the available targets
-	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
 build: ## Compile the API binary into bin/
 	$(GO) build -trimpath -o $(BIN) ./cmd/api
@@ -57,3 +58,34 @@ migrate: ## Apply the pending migrations against a local database
 
 migrate-down: ## Roll back the most recent migration
 	migrate -path database/migrations -database "$(DB_DSN)" down 1
+
+# ---------------------------------------------------------------------------
+# Load testing. See loadtest/README.md.
+#
+# The stack must run with the rate limit override, otherwise every run measures
+# the limiter instead of the service.
+# ---------------------------------------------------------------------------
+
+COMPOSE_LOADTEST := docker compose -f docker-compose.yaml -f loadtest/docker-compose.loadtest.yaml
+
+loadtest-up: ## Start the stack with rate limits raised for benchmarking
+	$(COMPOSE_LOADTEST) --profile all up -d --build
+
+loadtest-down: ## Stop the benchmarking stack
+	$(COMPOSE_LOADTEST) --profile all down
+
+loadtest-seed: ## Create the account, token and paste handles the tools need
+	./loadtest/seed.sh
+
+loadtest-smoke: ## One k6 pass over every endpoint, fails on any error
+	set -a; . ./loadtest/.seed.env; set +a; k6 run loadtest/k6/smoke.js
+
+loadtest-k6: ## k6 mixed workload (READ_RATE, WRITE_RATE, AUTH_RATE, DURATION)
+	set -a; . ./loadtest/.seed.env; set +a; k6 run loadtest/k6/mixed.js
+
+loadtest-locust: ## Locust headless run (USERS, SPAWN_RATE, RUN_TIME)
+	locust -f loadtest/locust/locustfile.py --host $(or $(BASE_URL),http://localhost:8000) \
+		--headless --users $(or $(USERS),100) --spawn-rate $(or $(SPAWN_RATE),10) --run-time $(or $(RUN_TIME),2m)
+
+loadtest-vegeta: ## Vegeta run (SCENARIO, RATE, DURATION)
+	./loadtest/vegeta/run.sh $(or $(SCENARIO),mixed) $(or $(RATE),200) $(or $(DURATION),30s)

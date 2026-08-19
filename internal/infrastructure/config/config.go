@@ -35,11 +35,12 @@ var placeholderSecrets = []string{
 
 // Config is the fully validated application configuration.
 type Config struct {
-	HTTP     HTTP
-	Database Database
-	Security Security
-	CORS     CORS
-	Purge    Purge
+	HTTP      HTTP
+	Database  Database
+	Security  Security
+	CORS      CORS
+	RateLimit RateLimit
+	Purge     Purge
 }
 
 // HTTP holds the server socket and the timeouts that bound a slow client.
@@ -85,6 +86,21 @@ type CORS struct {
 	AllowAllOrigins bool
 }
 
+// RateLimit holds the per-client budgets of the two limited route groups.
+//
+// They are configurable because the shipped defaults are deliberately strict,
+// which is right for production but makes a load test measure the limiter
+// instead of the service. Raise them in a benchmark environment, never in one
+// reachable from the internet.
+type RateLimit struct {
+	LoginRPS   float64
+	LoginBurst int
+	AnonRPS    float64
+	AnonBurst  int
+	ReadRPS    float64
+	ReadBurst  int
+}
+
 // Purge holds the expired-paste sweeper settings.
 type Purge struct {
 	Interval time.Duration
@@ -124,6 +140,23 @@ func Load() (Config, error) {
 			TokenTTL:    envDuration("JWT_TTL", 24*time.Hour),
 			BcryptCost:  envInt("BCRYPT_COST", 12),
 			AuditLogDir: envString("AUDIT_LOG_DIR", "."),
+		},
+		RateLimit: RateLimit{
+			// One attempt every five seconds, absorbing a burst of five, is
+			// harsh enough that brute force is impractical and loose enough
+			// that a typo plus a retry does not lock a real user out.
+			LoginRPS:   envFloat("RATE_LIMIT_LOGIN_RPS", 1.0/5.0),
+			LoginBurst: envInt("RATE_LIMIT_LOGIN_BURST", 5),
+			// Anonymous writes carry no credential to guess; they only need to
+			// stay short of a spam firehose.
+			AnonRPS:   envFloat("RATE_LIMIT_ANON_RPS", 1.0),
+			AnonBurst: envInt("RATE_LIMIT_ANON_BURST", 10),
+			// Reads are cheap, so this budget is generous. It exists because
+			// reading a secret-protected paste costs a full bcrypt comparison,
+			// roughly 250 times an ordinary read, on an unauthenticated route.
+			// Without a ceiling a single client can saturate a core.
+			ReadRPS:   envFloat("RATE_LIMIT_READ_RPS", 50.0),
+			ReadBurst: envInt("RATE_LIMIT_READ_BURST", 100),
 		},
 		Purge: Purge{
 			Interval: envDuration("PURGE_INTERVAL", time.Minute),
@@ -189,6 +222,15 @@ func (c Config) validate() error {
 	if c.Purge.Interval <= 0 {
 		problems = append(problems, "PURGE_INTERVAL must be positive")
 	}
+	if c.RateLimit.LoginRPS <= 0 || c.RateLimit.LoginBurst < 1 {
+		problems = append(problems, "RATE_LIMIT_LOGIN_RPS and RATE_LIMIT_LOGIN_BURST must be positive")
+	}
+	if c.RateLimit.AnonRPS <= 0 || c.RateLimit.AnonBurst < 1 {
+		problems = append(problems, "RATE_LIMIT_ANON_RPS and RATE_LIMIT_ANON_BURST must be positive")
+	}
+	if c.RateLimit.ReadRPS <= 0 || c.RateLimit.ReadBurst < 1 {
+		problems = append(problems, "RATE_LIMIT_READ_RPS and RATE_LIMIT_READ_BURST must be positive")
+	}
 
 	if len(problems) > 0 {
 		return fmt.Errorf("invalid configuration:\n  - %s", strings.Join(problems, "\n  - "))
@@ -205,6 +247,14 @@ func envString(key, fallback string) string {
 
 func envInt(key string, fallback int) int {
 	value, err := strconv.Atoi(strings.TrimSpace(os.Getenv(key)))
+	if err != nil {
+		return fallback
+	}
+	return value
+}
+
+func envFloat(key string, fallback float64) float64 {
+	value, err := strconv.ParseFloat(strings.TrimSpace(os.Getenv(key)), 64)
 	if err != nil {
 		return fallback
 	}

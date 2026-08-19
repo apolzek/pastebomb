@@ -27,23 +27,15 @@ type Dependencies struct {
 type Limiters struct {
 	Login     *middleware.RateLimiter
 	Anonymous *middleware.RateLimiter
+	Read      *middleware.RateLimiter
 }
 
-// Stop releases both limiters.
+// Stop releases every limiter.
 func (l Limiters) Stop() {
 	l.Login.Stop()
 	l.Anonymous.Stop()
+	l.Read.Stop()
 }
-
-// Rate limit budgets:
-//   - login is deliberately harsh, since a brute force needs many attempts but
-//     a real user needs only a handful.
-//   - anonymous writes are looser: they carry no credential to guess, they
-//     just must not become a spam firehose.
-var (
-	loginRPS, loginBurst = 1.0 / 5.0, 5
-	anonRPS, anonBurst   = 1.0, 10
-)
 
 // NewRouter builds the Gin engine with the full middleware stack.
 func NewRouter(deps Dependencies) (*gin.Engine, Limiters) {
@@ -62,9 +54,15 @@ func NewRouter(deps Dependencies) (*gin.Engine, Limiters) {
 	)
 
 	limiters := Limiters{
-		Login:     middleware.NewRateLimiter(loginRPS, loginBurst),
-		Anonymous: middleware.NewRateLimiter(anonRPS, anonBurst),
+		Login:     middleware.NewRateLimiter(deps.Config.RateLimit.LoginRPS, deps.Config.RateLimit.LoginBurst),
+		Anonymous: middleware.NewRateLimiter(deps.Config.RateLimit.AnonRPS, deps.Config.RateLimit.AnonBurst),
+		Read:      middleware.NewRateLimiter(deps.Config.RateLimit.ReadRPS, deps.Config.RateLimit.ReadBurst),
 	}
+
+	// Reading a secret-protected paste runs bcrypt, which costs about 250
+	// times an ordinary read on a route that needs no credential. Capping the
+	// public reads keeps that from becoming an amplification lever.
+	readLimit := limiters.Read.Handler()
 
 	authHandler := handler.NewAuthHandler(deps.AuthService)
 	userHandler := handler.NewUserHandler(deps.UserService)
@@ -83,10 +81,10 @@ func NewRouter(deps Dependencies) (*gin.Engine, Limiters) {
 		// Public.
 		users.POST("", limiters.Anonymous.Handler(), userHandler.Register)
 		users.POST("/", limiters.Anonymous.Handler(), userHandler.Register)
-		users.GET("/anonymous/posts", pasteHandler.ListPublic)
+		users.GET("/anonymous/posts", readLimit, pasteHandler.ListPublic)
 		users.POST("/anonymous/post", limiters.Anonymous.Handler(), pasteHandler.CreateAnonymous)
-		users.GET("/anonymous/:slug", pasteHandler.Read)
-		users.GET("/anonymous/:slug/raw", pasteHandler.ReadRaw)
+		users.GET("/anonymous/:slug", readLimit, pasteHandler.Read)
+		users.GET("/anonymous/:slug/raw", readLimit, pasteHandler.ReadRaw)
 
 		// Authenticated, acting on the caller's own account.
 		self := users.Group("/me", authenticated)
@@ -105,7 +103,7 @@ func NewRouter(deps Dependencies) (*gin.Engine, Limiters) {
 		users.GET("/paginate", authenticated, adminOnly, userHandler.ListActive)
 
 		// Public profile lookup. Declared last so the static routes above win.
-		users.GET("/:handle", userHandler.PublicProfile)
+		users.GET("/:handle", readLimit, userHandler.PublicProfile)
 		users.DELETE("/:handle", authenticated, userHandler.DeactivateByID)
 	}
 

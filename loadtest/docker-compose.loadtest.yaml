@@ -1,0 +1,27 @@
+# Compose override that raises the rate limits for benchmarking.
+#
+# The shipped budgets are one login attempt per five seconds, one anonymous
+# write per second and fifty public reads per second. Those are correct in
+# production, but under a load test they turn every run into a measurement of
+# the limiter rather than of the service.
+#
+# A run that reports a high rate_limited count is telling you this override is
+# missing, not that the service is slow.
+#
+# Use it together with the base file:
+#
+#   docker compose -f docker-compose.yaml -f loadtest/docker-compose.loadtest.yaml \
+#     --profile all up -d --build
+#
+# Never apply this override to an environment reachable from the internet.
+services:
+  app:
+    environment:
+      RATE_LIMIT_LOGIN_RPS: "${RATE_LIMIT_LOGIN_RPS:-1000}"
+      RATE_LIMIT_LOGIN_BURST: "${RATE_LIMIT_LOGIN_BURST:-2000}"
+      RATE_LIMIT_ANON_RPS: "${RATE_LIMIT_ANON_RPS:-5000}"
+      RATE_LIMIT_ANON_BURST: "${RATE_LIMIT_ANON_BURST:-10000}"
+      RATE_LIMIT_READ_RPS: "${RATE_LIMIT_READ_RPS:-20000}"
+      RATE_LIMIT_READ_BURST: "${RATE_LIMIT_READ_BURST:-40000}"
+      # A load test generates a lot of audit lines; keep them off the data path.
+      LOG_LEVEL: "${LOG_LEVEL:-info}"

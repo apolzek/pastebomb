@@ -1,0 +1,253 @@
+"""Locust workload for pastebomb.
+
+Three user classes run side by side, weighted to resemble real traffic: most
+visitors follow a link to a single paste, a few browse the index, fewer still
+sign in and write. Weights are set on the classes, so raising the total user
+count keeps the mix constant.
+
+Run it after ./loadtest/seed.sh:
+
+    locust -f loadtest/locust/locustfile.py --host http://localhost:8000
+
+or headless, which is what CI and repeatable runs want:
+
+    locust -f loadtest/locust/locustfile.py --host http://localhost:8000 \
+        --headless --users 100 --spawn-rate 10 --run-time 2m
+"""
+
+from __future__ import annotations
+
+import os
+import random
+from pathlib import Path
+
+from locust import HttpUser, between, events, task
+
+# ---------------------------------------------------------------------------
+# Seed data
+# ---------------------------------------------------------------------------
+
+SEED_FILE = Path(__file__).resolve().parent.parent / ".seed.env"
+
+
+def load_seed() -> dict[str, str]:
+    """Read loadtest/.seed.env, letting real environment variables win.
+
+    Locust has no equivalent of k6's --env, so the seed file is read directly.
+    That also means a single seeding run can drive all three tools.
+    """
+    values: dict[str, str] = {}
+    if SEED_FILE.exists():
+        for line in SEED_FILE.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            values[key.strip()] = value.strip()
+
+    for key in ("BASE_URL", "TOKEN", "SLUGS", "SECRET_SLUG", "SECRET", "EMAIL", "PASSWORD", "USERNAME"):
+        if os.environ.get(key):
+            values[key] = os.environ[key]
+    return values
+
+
+SEED = load_seed()
+SLUGS = [slug for slug in SEED.get("SLUGS", "").split(",") if slug]
+TOKEN = SEED.get("TOKEN", "")
+SECRET_SLUG = SEED.get("SECRET_SLUG", "")
+SECRET = SEED.get("SECRET", "")
+EMAIL = SEED.get("EMAIL", "")
+PASSWORD = SEED.get("PASSWORD", "")
+USERNAME = SEED.get("USERNAME", "")
+
+
+@events.test_start.add_listener
+def check_seed(environment, **_kwargs) -> None:
+    """Fail fast rather than reporting a run full of 404s as a slow service."""
+    if not SLUGS:
+        environment.runner.quit()
+        raise RuntimeError(
+            "no seeded paste handles found. Run ./loadtest/seed.sh first, "
+            f"which writes {SEED_FILE}"
+        )
+
+
+def bearer() -> dict[str, str]:
+    return {"Authorization": f"Bearer {TOKEN}"}
+
+
+# ---------------------------------------------------------------------------
+# User classes
+# ---------------------------------------------------------------------------
+
+
+class AnonymousReader(HttpUser):
+    """The dominant traffic shape: someone opening a shared paste link."""
+
+    weight = 8
+    wait_time = between(0.1, 1.0)
+
+    @task(12)
+    def read_paste(self) -> None:
+        slug = random.choice(SLUGS)
+        # name groups every handle under one entry, otherwise the statistics
+        # table gets one row per random slug and becomes unreadable.
+        self.client.get(f"/u/anonymous/{slug}", name="/u/anonymous/[slug]")
+
+    @task(6)
+    def read_raw(self) -> None:
+        slug = random.choice(SLUGS)
+        self.client.get(f"/u/anonymous/{slug}/raw", name="/u/anonymous/[slug]/raw")
+
+    @task(3)
+    def browse_index(self) -> None:
+        page = random.randint(1, 3)
+        self.client.get(
+            f"/u/anonymous/posts?page={page}&per_page=20",
+            name="/u/anonymous/posts",
+        )
+
+    @task(1)
+    def read_protected_without_secret(self) -> None:
+        """401 is the correct answer here, so it must not count as a failure."""
+        if not SECRET_SLUG:
+            return
+        with self.client.get(
+            f"/u/anonymous/{SECRET_SLUG}",
+            name="/u/anonymous/[slug] (protected, denied)",
+            catch_response=True,
+        ) as response:
+            if response.status_code == 401:
+                response.success()
+            else:
+                response.failure(f"expected 401, got {response.status_code}")
+
+    @task(1)
+    def read_protected_with_secret(self) -> None:
+        if not SECRET_SLUG:
+            return
+        self.client.get(
+            f"/u/anonymous/{SECRET_SLUG}",
+            headers={"X-Post-Secret": SECRET},
+            name="/u/anonymous/[slug] (protected, allowed)",
+        )
+
+    @task(1)
+    def public_profile(self) -> None:
+        if not USERNAME:
+            return
+        self.client.get(f"/u/{USERNAME}", name="/u/[handle]")
+
+
+class AnonymousWriter(HttpUser):
+    """Pastes being created without an account."""
+
+    weight = 2
+    wait_time = between(0.5, 2.0)
+
+    @task
+    def create_paste(self) -> None:
+        payload = {
+            "title": f"locust paste {random.randint(1, 1_000_000)}",
+            "content": "generated by locust " + "x" * random.randint(50, 2000),
+            "category": "loadtest",
+        }
+        with self.client.post(
+            "/u/anonymous/post",
+            json=payload,
+            name="/u/anonymous/post",
+            catch_response=True,
+        ) as response:
+            if response.status_code == 201:
+                response.success()
+            elif response.status_code == 429:
+                # Throttling is the service working as designed. Mark it as a
+                # success so it does not read as an outage, and watch the
+                # rate limit counter instead.
+                response.success()
+            else:
+                response.failure(f"expected 201, got {response.status_code}")
+
+
+class AuthenticatedUser(HttpUser):
+    """A signed-in user reading their profile and writing owned pastes."""
+
+    weight = 1
+    wait_time = between(0.5, 2.0)
+
+    def on_start(self) -> None:
+        """Log in per user so the run includes real bcrypt work.
+
+        Falls back to the seeded token when login is throttled, so the class
+        stays useful even with production rate limits in place.
+        """
+        self.token = TOKEN
+        if not (EMAIL and PASSWORD):
+            return
+
+        with self.client.post(
+            "/login",
+            json={"email": EMAIL, "password": PASSWORD},
+            name="/login",
+            catch_response=True,
+        ) as response:
+            if response.status_code == 200:
+                self.token = response.json()["data"]["token"]
+                response.success()
+            elif response.status_code == 429:
+                response.success()
+            else:
+                response.failure(f"login returned {response.status_code}")
+
+    def headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.token}"}
+
+    @task(5)
+    def profile(self) -> None:
+        self.client.get("/u/me", headers=self.headers(), name="/u/me")
+
+    @task(4)
+    def list_my_pastes(self) -> None:
+        self.client.get("/u/me/posts", headers=self.headers(), name="/u/me/posts")
+
+    @task(2)
+    def list_my_pastes_with_content(self) -> None:
+        self.client.get(
+            "/u/me/posts/content",
+            headers=self.headers(),
+            name="/u/me/posts/content",
+        )
+
+    @task(2)
+    def create_owned_paste(self) -> None:
+        payload = {
+            "title": f"locust owned paste {random.randint(1, 1_000_000)}",
+            "content": "owned body from locust",
+            "is_public": False,
+        }
+        with self.client.post(
+            "/u/me/post",
+            json=payload,
+            headers=self.headers(),
+            name="/u/me/post",
+            catch_response=True,
+        ) as response:
+            if response.status_code in (201, 429):
+                response.success()
+            else:
+                response.failure(f"expected 201, got {response.status_code}")
+
+
+class HealthCheckUser(HttpUser):
+    """A steady trickle against the probes, so a stall is visible in the run."""
+
+    weight = 1
+    wait_time = between(1.0, 3.0)
+
+    @task(3)
+    def health(self) -> None:
+        self.client.get("/health", name="/health")
+
+    @task(1)
+    def ready(self) -> None:
+        self.client.get("/ready", name="/ready")

@@ -54,6 +54,13 @@ func newHarness(t *testing.T) *harness {
 	engine, limiters := httpiface.NewRouter(httpiface.Dependencies{
 		Config: config.Config{
 			HTTP: config.HTTP{MaxBodyBytes: 2 << 20},
+			// Generous budgets: these tests assert routing and authorization,
+			// and the limiter has its own suite.
+			RateLimit: config.RateLimit{
+				LoginRPS: 1000, LoginBurst: 1000,
+				AnonRPS: 1000, AnonBurst: 1000,
+				ReadRPS: 1000, ReadBurst: 1000,
+			},
 			CORS: config.CORS{AllowedOrigins: []string{"http://localhost:8080"}},
 		},
 		AuthService: application.NewAuthService(users, hasher, tokens, recorder),

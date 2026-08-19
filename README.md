@@ -105,6 +105,9 @@ with a list of the problems rather than surfacing later under load.
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Comma-separated, `*` disables the check |
 | `HTTP_TRUSTED_PROXIES` | empty | Only these may set `X-Forwarded-For` |
 | `HTTP_MAX_BODY_BYTES` | `2097152` | Request body cap |
+| `RATE_LIMIT_LOGIN_RPS` / `_BURST` | `0.2` / `5` | Per client, login |
+| `RATE_LIMIT_ANON_RPS` / `_BURST` | `1` / `10` | Per client, anonymous writes |
+| `RATE_LIMIT_READ_RPS` / `_BURST` | `50` / `100` | Per client, public reads |
 | `PURGE_INTERVAL` | `1m` | How often expired pastes are swept |
 | `AUDIT_LOG_DIR` | `.` | Where `audit.log` is written |
 | `LOG_LEVEL` | info | Set to `debug` for verbose logs |
@@ -159,7 +162,10 @@ a Postman collection.
   be used to discover which addresses are registered.
 * Tokens pin the signing algorithm and the issuer, which closes the `alg: none`
   and algorithm-confusion attacks.
-* Login and anonymous writes are rate limited per client, with bounded memory.
+* Login, anonymous writes and public reads are rate limited per client, with
+  bounded memory. Reads are limited because a secret-protected read costs a
+  bcrypt comparison, roughly 250 times an ordinary read, on a route that needs
+  no credential.
 * Every response carries `nosniff`, `X-Frame-Options`, a restrictive CSP and a
   correlation id. Raw pastes are served as a plain-text attachment so a paste
   containing HTML cannot execute in a browser.
@@ -200,3 +206,18 @@ What is covered:
 The GORM repository adapters are the one layer without automated coverage: they
 need a live MySQL instance. Add them behind a `//go:build integration` tag when
 a test database fixture exists.
+
+## Load testing
+
+`loadtest/` holds three suites, one per tool, sharing a seeding script:
+
+```sh
+make loadtest-up      # stack with the rate limits raised for benchmarking
+make loadtest-seed    # account, token and paste handles
+make loadtest-smoke   # k6 pass over every endpoint, fails on any error
+```
+
+k6 guards latency budgets in CI, Locust explores a mixed workload
+interactively, and Vegeta measures precise latency at a fixed request rate.
+Measured baselines and how to interpret a disagreement between the tools are in
+[loadtest/README.md](loadtest/README.md).

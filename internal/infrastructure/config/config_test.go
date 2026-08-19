@@ -25,6 +25,9 @@ var overridable = []string{
 	"APP_PORT", "DB_DRIVER", "DB_MAX_OPEN_CONNS", "DB_MAX_IDLE_CONNS",
 	"BCRYPT_COST", "JWT_TTL", "CORS_ALLOWED_ORIGINS", "HTTP_MAX_BODY_BYTES",
 	"HTTP_READ_HEADER_TIMEOUT", "HTTP_WRITE_TIMEOUT", "PURGE_INTERVAL",
+	"RATE_LIMIT_LOGIN_RPS", "RATE_LIMIT_LOGIN_BURST",
+	"RATE_LIMIT_ANON_RPS", "RATE_LIMIT_ANON_BURST",
+	"RATE_LIMIT_READ_RPS", "RATE_LIMIT_READ_BURST",
 }
 
 func loadWith(t *testing.T, environment map[string]string) (config.Config, error) {
@@ -52,6 +55,53 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	assert.Positive(t, cfg.HTTP.ReadHeaderTimeout)
 	assert.Positive(t, cfg.HTTP.WriteTimeout)
 	assert.Positive(t, cfg.HTTP.MaxBodyBytes)
+	// The shipped budgets are the strict production ones.
+	assert.InDelta(t, 0.2, cfg.RateLimit.LoginRPS, 0.0001)
+	assert.Equal(t, 5, cfg.RateLimit.LoginBurst)
+	assert.InDelta(t, 1.0, cfg.RateLimit.AnonRPS, 0.0001)
+	assert.Equal(t, 10, cfg.RateLimit.AnonBurst)
+	assert.InDelta(t, 50.0, cfg.RateLimit.ReadRPS, 0.0001)
+	assert.Equal(t, 100, cfg.RateLimit.ReadBurst)
+}
+
+// Load testing needs the budgets raised, so they are configurable, but a
+// nonsensical value must fail the boot rather than silently deny every request.
+func TestLoadRejectsNonPositiveRateLimitBudgets(t *testing.T) {
+	cases := map[string]map[string]string{
+		"zero login rate":      {"RATE_LIMIT_LOGIN_RPS": "0"},
+		"negative login burst": {"RATE_LIMIT_LOGIN_BURST": "-1"},
+		"zero anon rate":       {"RATE_LIMIT_ANON_RPS": "0"},
+		"zero anon burst":      {"RATE_LIMIT_ANON_BURST": "0"},
+		"zero read rate":       {"RATE_LIMIT_READ_RPS": "0"},
+		"negative read burst":  {"RATE_LIMIT_READ_BURST": "-2"},
+	}
+
+	for name, override := range cases {
+		t.Run(name, func(t *testing.T) {
+			environment := validEnvironment()
+			for key, value := range override {
+				environment[key] = value
+			}
+
+			_, err := loadWith(t, environment)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "RATE_LIMIT")
+		})
+	}
+}
+
+func TestRateLimitBudgetsCanBeRaisedForBenchmarking(t *testing.T) {
+	environment := validEnvironment()
+	environment["RATE_LIMIT_LOGIN_RPS"] = "500"
+	environment["RATE_LIMIT_ANON_RPS"] = "2000.5"
+	environment["RATE_LIMIT_ANON_BURST"] = "3000"
+
+	cfg, err := loadWith(t, environment)
+	require.NoError(t, err)
+
+	assert.InDelta(t, 500, cfg.RateLimit.LoginRPS, 0.0001)
+	assert.InDelta(t, 2000.5, cfg.RateLimit.AnonRPS, 0.0001)
+	assert.Equal(t, 3000, cfg.RateLimit.AnonBurst)
 }
 
 // Starting with a weak or placeholder signing key would let anyone mint a
