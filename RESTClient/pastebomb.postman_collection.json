@@ -1,625 +1,552 @@
 {
-	"info": {
-		"_postman_id": "b8983953-beab-4ee3-b317-86737fca6801",
-		"name": "pastebomb",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "11319918"
-	},
-	"item": [
-		{
-			"name": "Administrative",
-			"item": [
-				{
-					"name": "GetAllUsers",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "owner",
-								"value": "apolzek",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "localhost:8000/u/all",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetAllActiveUsers",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "owner",
-								"value": "apolzek",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "localhost:8000/u",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetAllActiveUsersPaginate",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "owner",
-								"value": "apolzek",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "localhost:8000/u/paginate?page=1&perPage=12",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"paginate"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "perPage",
-									"value": "12"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Authentication",
-			"item": [
-				{
-					"name": "Login",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"owen@gmail.com\",\n    \"password\": \"pass@1234\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/login",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Private",
-			"item": [
-				{
-					"name": "GetUserData",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/me",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"me"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "UpdateUserData",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"icaro\",\n    \"email\": \"icaro@gmail.com\",\n    \"username\": \"icaro\",\n    \"born_date\": \"2022-09-04\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/u/me",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"me"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DeactivateUserByID",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/u/1",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateUserPost",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"pubzin\",\n    \"content\": \"dmFpIHRyYWJhaWEgIQ==\",\n    \"category\": \"programming\",\n    \"is_public\": 1\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/u/me/post",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"me",
-								"post"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "ListUserPosts",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/me/posts",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"me",
-								"posts"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetUserPostsContent",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/me/posts/content",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"me",
-								"posts",
-								"content"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Public",
-			"item": [
-				{
-					"name": "CreateNewUser",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"owen\",\n    \"email\": \"owen@gmail.com\",\n    \"username\": \"owen\",\n    \"born_date\": \"2022-09-04\",\n    \"password\": \"pass@1234\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/u",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetAllPublicPosts",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/anonymous/posts",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"anonymous",
-								"posts"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetUserByIDorUsername",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/mary",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"mary"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateAnonymousPost",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"meuem\",\n    \"content\": \"dmVyc2lvbjogJzMuMycKc2VydmljZXM6CiAgZGI6CiAgICBpbWFnZTogbXlzcWw6NS43CiAgICByZXN0YXJ0OiBhbHdheXMKICAgIGVudmlyb25tZW50OgogICAgICBNWVNRTF9EQVRBQkFTRTogJ2dvX2dpbl9nb25pYycKICAgICAgTVlTUUxfVVNFUjogJ3VzZXInCiAgICAgIE1ZU1FMX1BBU1NXT1JEOiAnMTIzNCcKICAgICAgTVlTUUxfUk9PVF9QQVNTV09SRDogJ3Jvb3RAMTIzNCcKICAgIHBvcnRzOgogICAgICAtICczMzA2OjMzMDYnCiAgICBleHBvc2U6CiAgICAgIC0gJzMzMDYnCiAgICB2b2x1bWVzOgogICAgICAtIG15c3FsX2RiX3ZvbHVtZTovdmFyL2xpYi9teXNxbAp2b2x1bWVzOgogIG15c3FsX2RiX3ZvbHVtZTo=\",\n    \"category\": \"study\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "localhost:8000/u/anonymous/post",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"anonymous",
-								"post"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetPublicPosByIDorUrl",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/u/anonymous/qkFqqeqBI0",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"u",
-								"anonymous",
-								"qkFqqeqBI0"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Files(deactivate)",
-			"item": [
-				{
-					"name": "/file/file",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "/home/apolzek/Downloads/BuildYourOwnDistributedSystemUsingGoGopherCon2023.pdf"
-								}
-							]
-						},
-						"url": {
-							"raw": "localhost:8000/file/file",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"file",
-								"file"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "/file/file/middleware",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "/home/apolzek/Downloads/F7gR7B1WwAA7U0s.jpeg"
-								}
-							]
-						},
-						"url": {
-							"raw": "localhost:8000/file/file/middleware",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"file",
-								"file",
-								"middleware"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "/file/:filename",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "/home/apolzek/Imagens/Papéis de parede/computer-cat-table-room-wallpaper-1930be8a1c2236ca401fe5853977ca3b.jpg"
-								}
-							]
-						},
-						"url": {
-							"raw": "localhost:8000/file/file-2023-10-27 15:31:04-ECayV.jpeg",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"file",
-								"file-2023-10-27 15:31:04-ECayV.jpeg"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "/public/*filepath",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/public/files/file-2023-04-05 00:21:33-1Tuet.jpg",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"public",
-								"files",
-								"file-2023-04-05 00:21:33-1Tuet.jpg"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "/public/*filepath",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "HEAD",
-						"header": [],
-						"url": {
-							"raw": "localhost:8000/public/files/file-2023-04-05 00:21:33-1Tuet.jpgx",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"public",
-								"files",
-								"file-2023-04-05 00:21:33-1Tuet.jpgx"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "/health",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": []
-				},
-				"url": {
-					"raw": "localhost:8000/health",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"health"
-					]
-				}
-			},
-			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im93ZW5AZ21haWwuY29tIiwiZXhwIjoxNzA4NTMzNTI1LCJpZCI6MSwibmFtZSI6Im93ZW4ifQ.V3gnS970ZS1QF9wcuGBknffDzh16Rop_WUQR17wP1-Y",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	]
+  "info": {
+    "name": "pastebomb",
+    "description": "pastebomb HTTP API. Set baseUrl, then run Login: it stores the bearer token in a collection variable that every authenticated request reuses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "ownedSlug",
+      "value": ""
+    },
+    {
+      "key": "anonymousSlug",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            },
+            "description": "Checks the database, so an unhealthy instance is pulled out of the load balancer."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"john\",\n    \"email\": \"john@example.com\",\n    \"username\": \"john\",\n    \"born_date\": \"1990-09-04\",\n    \"password\": \"a-long-enough-password\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"a-long-enough-password\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.token) {",
+                  "    pm.collectionVariables.set('token', body.data.token);",
+                  "}",
+                  "pm.test('a token was issued', () => pm.expect(body.data.token).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"username\": \"john.doe\",\n    \"email\": \"john.doe@example.com\",\n    \"born_date\": \"1990-09-04\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Public profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/u/john",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "john"
+              ]
+            },
+            "description": "Unauthenticated, so it returns only the id, name, username and creation date."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate my account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pastes",
+      "item": [
+        {
+          "name": "Create an owned paste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me/post",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me",
+                "post"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"deploy notes\",\n    \"content\": \"kubectl rollout status deploy/api\",\n    \"category\": \"ops\",\n    \"is_public\": false\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.url_id) {",
+                  "    pm.collectionVariables.set('ownedSlug', body.data.url_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create an anonymous paste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/anonymous/post",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "anonymous",
+                "post"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"one time notes\",\n    \"content\": \"this disappears on its own\",\n    \"category\": \"notes\",\n    \"expiration_date\": \"2030-12-31T23:59:59Z\",\n    \"secret_access\": \"open sesame\"\n}"
+            },
+            "description": "expiration_date is RFC3339 and must be in the future. secret_access is optional and is stored hashed."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.url_id) {",
+                  "    pm.collectionVariables.set('anonymousSlug', body.data.url_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read a paste",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Post-Secret",
+                "value": "open sesame"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/anonymous/{{anonymousSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "anonymous",
+                "{{anonymousSlug}}"
+              ]
+            },
+            "description": "Pastes are addressed by their random handle only. Numeric ids never resolve."
+          },
+          "response": []
+        },
+        {
+          "name": "Read a paste raw",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Post-Secret",
+                "value": "open sesame"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/anonymous/{{anonymousSlug}}/raw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "anonymous",
+                "{{anonymousSlug}}",
+                "raw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Public index",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/u/anonymous/posts?page=1&per_page=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "anonymous",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Metadata only: bodies are never part of the index."
+          },
+          "response": []
+        },
+        {
+          "name": "My pastes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me",
+                "posts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "My pastes with bodies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/me/posts/content",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "me",
+                "posts",
+                "content"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Administrative",
+      "description": "Needs a token whose admin claim is true. Grant it with: UPDATE users SET is_admin = 1 WHERE email = '...'; then log in again.",
+      "item": [
+        {
+          "name": "All accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/all?page=1&per_page=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Active accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Active accounts paginated",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/u/paginate?page=1&per_page=12",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "u",
+                "paginate"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "12"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }

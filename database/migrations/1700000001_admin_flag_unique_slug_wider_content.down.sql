@@ -1,0 +1,12 @@
+ALTER TABLE users MODIFY COLUMN is_active TINYINT(1) DEFAULT 1;
+ALTER TABLE users MODIFY COLUMN password VARCHAR(255);
+ALTER TABLE users MODIFY COLUMN email VARCHAR(255);
+ALTER TABLE users MODIFY COLUMN username VARCHAR(100);
+ALTER TABLE users MODIFY COLUMN name VARCHAR(255);
+
+ALTER TABLE posts MODIFY COLUMN content TEXT;
+
+DROP INDEX idx_posts_url_id ON posts;
+CREATE INDEX idx_posts_url_id ON posts (url_id);
+
+ALTER TABLE users DROP COLUMN is_admin;

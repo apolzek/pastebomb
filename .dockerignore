@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+tmp
+bin
+*.log
+# The image must never carry local credentials.
+.env
+.env.*
+!.env.example
+RESTClient
+README.md

@@ -1,16 +1,28 @@
 @apiurl = localhost:8000
-### CreateNewUser
+
+### Health probe
+GET /health HTTP/1.1
+Host: {{apiurl}}
+
+### Readiness probe, checks the database too
+GET /ready HTTP/1.1
+Host: {{apiurl}}
+
+####################################################################
+# Accounts
+####################################################################
+
+### Register
 POST /u HTTP/1.1
-Host: localhost:8000
+Host: {{apiurl}}
 Content-Type: application/json
-Content-Length: 138
 
 {
     "name": "john",
-    "email": "john@gmail.com",
+    "email": "john@example.com",
     "username": "john",
-    "born_date": "2022-09-04",
-    "password": "pass@1234"
+    "born_date": "1990-09-04",
+    "password": "a-long-enough-password"
 }
 
 ### Login
@@ -18,110 +30,120 @@ Content-Length: 138
 POST /login HTTP/1.1
 Host: {{apiurl}}
 Content-Type: application/json
-Content-Length: 64
 
 {
-    "email": "john@gmail.com",
-    "password": "pass@1234"
-}
-@token = {{login.response.body.token}}
-
-### CreateUserPost
-POST /u/me/post HTTP/1.1
-Host: {{apiurl}}
-Content-Type: application/json
-Authorization: Bearer {{token}}
-Content-Length: 114
-
-{
-    "title": "new post",
-    "content": "dmFpIHRyYWJhaWEgIQ==",
-    "category": "programming",
-    "is_public": 1
+    "email": "john@example.com",
+    "password": "a-long-enough-password"
 }
 
-####################################################################
+@token = {{login.response.body.data.token}}
 
-### GetAllUsers
-GET /u/all HTTP/1.1
-Host: {{apiurl}}
-owner: apolzek
-
-### GetAllActiveUsers
-GET /u HTTP/1.1
-Host: {{apiurl}}
-owner: apolzek
-
-### GetAllActiveUsersPaginate
-GET /u/paginate?page=1&perPage=12 HTTP/1.1
-Host: {{apiurl}}
-owner: apolzek
-
-
-####################################################################
-
-### GetUserData
+### My profile
 GET /u/me HTTP/1.1
 Host: {{apiurl}}
 Authorization: Bearer {{token}}
 
-### UpdateUserData
+### Update my profile
 PATCH /u/me HTTP/1.1
 Host: {{apiurl}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
-Content-Length: 109x
 
 {
-    "name": "johnn",
-    "email": "johnn@gmail.com",
-    "username": "johnn",
-    "born_date": "2022-09-04"
+    "name": "John Doe",
+    "username": "john.doe",
+    "email": "john.doe@example.com",
+    "born_date": "1990-09-04"
 }
 
-### DeactivateUserByID
-DELETE /u/1 HTTP/1.1
+### Public profile, no email or date of birth is returned
+GET /u/john HTTP/1.1
+Host: {{apiurl}}
+
+### Deactivate my account
+DELETE /u/me HTTP/1.1
 Host: {{apiurl}}
 Authorization: Bearer {{token}}
 
-### ListUserPosts
+####################################################################
+# Pastes
+####################################################################
+
+### Create a paste owned by me
+# @name ownedPaste
+POST /u/me/post HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "deploy notes",
+    "content": "kubectl rollout status deploy/api",
+    "category": "ops",
+    "is_public": false
+}
+
+@ownedSlug = {{ownedPaste.response.body.data.url_id}}
+
+### Create an anonymous paste that expires and needs a secret
+# @name anonymousPaste
+POST /u/anonymous/post HTTP/1.1
+Host: {{apiurl}}
+Content-Type: application/json
+
+{
+    "title": "one time notes",
+    "content": "this disappears on its own",
+    "category": "notes",
+    "expiration_date": "2030-12-31T23:59:59Z",
+    "secret_access": "open sesame"
+}
+
+@anonymousSlug = {{anonymousPaste.response.body.data.url_id}}
+
+### Read a paste by its handle
+GET /u/anonymous/{{anonymousSlug}} HTTP/1.1
+Host: {{apiurl}}
+X-Post-Secret: open sesame
+
+### Read the raw body, ready for curl
+GET /u/anonymous/{{anonymousSlug}}/raw HTTP/1.1
+Host: {{apiurl}}
+X-Post-Secret: open sesame
+
+### Public index, metadata only
+GET /u/anonymous/posts?page=1&per_page=20 HTTP/1.1
+Host: {{apiurl}}
+
+### My pastes, metadata only
 GET /u/me/posts HTTP/1.1
 Host: {{apiurl}}
 Authorization: Bearer {{token}}
 
-### GetUserPostsContent
+### My pastes including their bodies
 GET /u/me/posts/content HTTP/1.1
 Host: {{apiurl}}
 Authorization: Bearer {{token}}
 
 ####################################################################
+# Administrative
+#
+# These need a token whose "admin" claim is true. Grant it out of band:
+#   UPDATE users SET is_admin = 1 WHERE email = 'john@example.com';
+# then log in again to pick up the claim.
+####################################################################
 
-### GetAllPublicPosts
-GET /u/anonymous/posts HTTP/1.1
-Host: localhost:8000
+### All accounts, active or not
+GET /u/all?page=1&per_page=20 HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
 
-### GetUserByIDorUsername
-GET /u/john HTTP/1.1
-Host: localhost:8000
+### Active accounts
+GET /u HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
 
-### CreateAnonymousPost
-# @name anonymous_post
-POST /u/anonymous/post HTTP/1.1
-Host: localhost:8000
-Content-Type: application/json
-Content-Length: 544
-
-{
-    "title": "My Public Post",
-    "content": "dmFpIHRyYWJhaWEgIQ==",
-    "category": "programming"
-}
-@url_id = {{anonymous_post.response.body.data.url_id}}
-
-### GetPublicPosByIDorUrl
-GET /u/anonymous/{{url_id}} HTTP/1.1
-Host: localhost:8000
-
-
-
-
+### Active accounts, paginated
+GET /u/paginate?page=1&per_page=12 HTTP/1.1
+Host: {{apiurl}}
+Authorization: Bearer {{token}}
