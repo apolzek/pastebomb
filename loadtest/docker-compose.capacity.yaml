@@ -1,0 +1,24 @@
+# Capacity override: pins the application to a single CPU and 2 GB of RAM so a
+# load test measures what one small instance can actually sustain.
+#
+# The database is left unconstrained on purpose. The question this answers is
+# "how much traffic does one app instance serve?", and starving MySQL as well
+# would measure the pair of them without telling you which one gave out first.
+#
+# Stack it on top of the rate limit override, otherwise the limiter answers
+# before the CPU does:
+#
+#   docker compose -f docker-compose.yaml \
+#     -f loadtest/docker-compose.loadtest.yaml \
+#     -f loadtest/docker-compose.capacity.yaml \
+#     --profile all up -d --build
+services:
+  app:
+    cpus: 1.0
+    mem_limit: 2g
+    # Go sizes its thread pool from the host's core count, which inside a
+    # CPU-limited container means it schedules far more parallelism than the
+    # quota allows and burns the difference on context switches.
+    environment:
+      GOMAXPROCS: "1"
+      GOMEMLIMIT: "1800MiB"
